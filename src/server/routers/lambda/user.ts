@@ -1,14 +1,14 @@
 import { UserJSON } from '@clerk/backend';
-import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
 
 import { enableClerk } from '@/const/auth';
-import { serverDB } from '@/database/server';
-import { MessageModel } from '@/database/server/models/message';
-import { SessionModel } from '@/database/server/models/session';
-import { UserModel, UserNotFoundError } from '@/database/server/models/user';
+import { MessageModel } from '@/database/models/message';
+import { SessionModel } from '@/database/models/session';
+import { UserModel, UserNotFoundError } from '@/database/models/user';
+import { ClerkAuth } from '@/libs/clerk-auth';
 import { LobeNextAuthDbAdapter } from '@/libs/next-auth/adapter';
-import { authedProcedure, router } from '@/libs/trpc';
+import { authedProcedure, router } from '@/libs/trpc/lambda';
+import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
 import { UserService } from '@/server/services/user';
 import {
@@ -19,11 +19,12 @@ import {
 } from '@/types/user';
 import { UserSettings } from '@/types/user/settings';
 
-const userProcedure = authedProcedure.use(async (opts) => {
-  return opts.next({
+const userProcedure = authedProcedure.use(serverDatabase).use(async ({ ctx, next }) => {
+  return next({
     ctx: {
-      nextAuthDbAdapter: LobeNextAuthDbAdapter(serverDB),
-      userModel: new UserModel(serverDB, opts.ctx.userId),
+      clerkAuth: new ClerkAuth(),
+      nextAuthDbAdapter: LobeNextAuthDbAdapter(ctx.serverDB),
+      userModel: new UserModel(ctx.serverDB, ctx.userId),
     },
   });
 });
@@ -46,7 +47,7 @@ export const userRouter = router({
         state = await ctx.userModel.getUserState(KeyVaultsGateKeeper.getUserKeyVaults);
       } catch (error) {
         if (enableClerk && error instanceof UserNotFoundError) {
-          const user = await currentUser();
+          const user = await ctx.clerkAuth.getCurrentUser();
           if (user) {
             const userService = new UserService();
 
@@ -76,25 +77,32 @@ export const userRouter = router({
       }
     }
 
-    const messageModel = new MessageModel(serverDB, ctx.userId);
+    const messageModel = new MessageModel(ctx.serverDB, ctx.userId);
     const hasMoreThan4Messages = await messageModel.hasMoreThanN(4);
 
-    const sessionModel = new SessionModel(serverDB, ctx.userId);
+    const sessionModel = new SessionModel(ctx.serverDB, ctx.userId);
     const hasAnyMessages = await messageModel.hasMoreThanN(0);
     const hasExtraSession = await sessionModel.hasMoreThanN(1);
 
     return {
+      avatar: state.avatar,
       canEnablePWAGuide: hasMoreThan4Messages,
       canEnableTrace: hasMoreThan4Messages,
+      email: state.email,
+      firstName: state.firstName,
+
+      fullName: state.fullName,
+
       // 有消息，或者创建过助手，则认为有 conversation
       hasConversation: hasAnyMessages || hasExtraSession,
-
       // always return true for community version
       isOnboard: state.isOnboarded || true,
+      lastName: state.lastName,
       preference: state.preference as UserPreference,
       settings: state.settings,
       userId: ctx.userId,
-    };
+      username: state.username,
+    } satisfies UserInitializationState;
   }),
 
   makeUserOnboarded: userProcedure.mutation(async ({ ctx }) => {

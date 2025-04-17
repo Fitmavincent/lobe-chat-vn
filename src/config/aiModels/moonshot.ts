@@ -1,9 +1,10 @@
 import { AIChatModelCard } from '@/types/aiModel';
-
+// https://platform.moonshot.cn/docs/pricing/chat
 const moonshotChatModels: AIChatModelCard[] = [
   {
     abilities: {
       functionCall: true,
+      search: true,
       vision: true,
     },
     contextWindowTokens: 131_072,
@@ -15,15 +16,19 @@ const moonshotChatModels: AIChatModelCard[] = [
     pricing: {
       cachedInput: 1,
       currency: 'CNY',
-      input: 60,
-      output: 60,
+      input: 10,
+      output: 30,
     },
     releasedAt: '2025-02-17',
+    settings: {
+      searchImpl: 'params',
+    },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
     },
     contextWindowTokens: 131_072,
     description:
@@ -32,14 +37,18 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-auto',
     pricing: {
       currency: 'CNY',
-      input: 60,
-      output: 60,
+      input: 10,
+      output: 30,
+    },
+    settings: {
+      searchImpl: 'params',
     },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
     },
     contextWindowTokens: 8192,
     description:
@@ -48,14 +57,18 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-8k',
     pricing: {
       currency: 'CNY',
-      input: 12,
-      output: 12,
+      input: 2,
+      output: 10,
+    },
+    settings: {
+      searchImpl: 'params',
     },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
     },
     contextWindowTokens: 32_768,
     description:
@@ -64,14 +77,18 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-32k',
     pricing: {
       currency: 'CNY',
-      input: 24,
-      output: 24,
+      input: 5,
+      output: 20,
+    },
+    settings: {
+      searchImpl: 'params',
     },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
     },
     contextWindowTokens: 131_072,
     description:
@@ -80,14 +97,18 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-128k',
     pricing: {
       currency: 'CNY',
-      input: 60,
-      output: 60,
+      input: 10,
+      output: 30,
+    },
+    settings: {
+      searchImpl: 'params',
     },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
       vision: true,
     },
     contextWindowTokens: 8192,
@@ -97,15 +118,19 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-8k-vision-preview',
     pricing: {
       currency: 'CNY',
-      input: 12,
-      output: 12,
+      input: 2,
+      output: 10,
     },
     releasedAt: '2025-01-14',
+    settings: {
+      searchImpl: 'params',
+    },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
       vision: true,
     },
     contextWindowTokens: 32_768,
@@ -115,15 +140,19 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-32k-vision-preview',
     pricing: {
       currency: 'CNY',
-      input: 24,
-      output: 24,
+      input: 5,
+      output: 20,
     },
     releasedAt: '2025-01-14',
+    settings: {
+      searchImpl: 'params',
+    },
     type: 'chat',
   },
   {
     abilities: {
       functionCall: true,
+      search: true,
       vision: true,
     },
     contextWindowTokens: 131_072,
@@ -133,10 +162,13 @@ const moonshotChatModels: AIChatModelCard[] = [
     id: 'moonshot-v1-128k-vision-preview',
     pricing: {
       currency: 'CNY',
-      input: 60,
-      output: 60,
+      input: 10,
+      output: 30,
     },
     releasedAt: '2025-01-14',
+    settings: {
+      searchImpl: 'params',
+    },
     type: 'chat',
   },
 ];

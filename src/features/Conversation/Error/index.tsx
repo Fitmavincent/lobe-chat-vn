@@ -1,10 +1,11 @@
-import { IPluginErrorType, PluginErrorType } from '@lobehub/chat-plugin-sdk';
+import { IPluginErrorType } from '@lobehub/chat-plugin-sdk';
 import type { AlertProps } from '@lobehub/ui';
 import { Skeleton } from 'antd';
 import dynamic from 'next/dynamic';
 import { Suspense, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isDesktop } from '@/const/version';
 import { useProviderName } from '@/hooks/useProviderName';
 import { AgentRuntimeErrorType, ILobeAgentRuntimeErrorType } from '@/libs/agent-runtime';
 import { ChatErrorType, ErrorType } from '@/types/fetch';
@@ -14,11 +15,19 @@ import ClerkLogin from './ClerkLogin';
 import ErrorJsonViewer from './ErrorJsonViewer';
 import InvalidAPIKey from './InvalidAPIKey';
 import InvalidAccessCode from './InvalidAccessCode';
+import { ErrorActionContainer } from './style';
 
 const loading = () => <Skeleton active />;
 
 const OllamaBizError = dynamic(() => import('./OllamaBizError'), { loading, ssr: false });
-const PluginSettings = dynamic(() => import('./PluginSettings'), { loading, ssr: false });
+const OllamaSetupGuide = dynamic(() => import('./OllamaBizError/SetupGuide'), {
+  loading,
+  ssr: false,
+});
+const OllamaDesktopSetupGuide = dynamic(() => import('./OllamaDesktopSetupGuide'), {
+  loading,
+  ssr: false,
+});
 
 // Config for the errorMessage display
 const getErrorAlertConfig = (
@@ -49,6 +58,7 @@ const getErrorAlertConfig = (
       };
     }
 
+    case AgentRuntimeErrorType.OllamaServiceUnavailable:
     case AgentRuntimeErrorType.NoOpenAIAPIKey: {
       return {
         extraDefaultExpand: true,
@@ -85,8 +95,11 @@ const ErrorMessageExtra = memo<{ data: ChatMessage }>(({ data }) => {
   if (!error?.type) return;
 
   switch (error.type) {
-    case PluginErrorType.PluginSettingsInvalid: {
-      return <PluginSettings id={data.id} plugin={data.plugin} />;
+    // TODO: 优化 Ollama setup 的流程，isDesktop 模式下可以直接做到端到端检测
+    case AgentRuntimeErrorType.OllamaServiceUnavailable: {
+      if (isDesktop) return <OllamaDesktopSetupGuide id={data.id} />;
+
+      return <OllamaSetupGuide />;
     }
 
     case AgentRuntimeErrorType.OllamaBizError: {
@@ -120,7 +133,13 @@ const ErrorMessageExtra = memo<{ data: ChatMessage }>(({ data }) => {
 });
 
 export default memo<{ data: ChatMessage }>(({ data }) => (
-  <Suspense fallback={<Skeleton active style={{ width: '100%' }} />}>
+  <Suspense
+    fallback={
+      <ErrorActionContainer>
+        <Skeleton active style={{ width: '100%' }} />
+      </ErrorActionContainer>
+    }
+  >
     <ErrorMessageExtra data={data} />
   </Suspense>
 ));
